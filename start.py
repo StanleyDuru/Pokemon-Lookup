@@ -22,18 +22,21 @@ response = requests.request("GET", url, headers=headers)
 #           create database and store it
 def getInput():
     choice = input("Select to input stat or Pokemon: ")
-    while(choice.lower() == "pokemon" or choice.lower() == "stat"):
+    while not(choice.lower() == "pokemon" or choice.lower() == "stat"):
+        print("Invalid Input. Please try again!")
+        choice = input("Select to input stat or Pokemon: ")
         
-    if choice == "Pokemon":
-        Pokemon = input("Type in the name of a Pokemon: ")
-        return Pokemon
-    elif choice == "stat":
-        stat = input("Choose from the following base stats : attack, stamina, or defense: ")
-        return stat
-    else:
-        print("Response not valid")
-        choice
+    while choice.lower() == "pokemon" or choice.lower() == "stat":
+        if choice.lower() == "pokemon":
+            Pokemon = input("\nType in the name of a Pokemon: ")
+            return print("this worked")
+        elif choice.lower() == "stat":
+            print("\nChoose from the following base stats:\n 1. Attack \n 2. Stamina \n 3. Defense\n")
+            stat = input()
+            return print("this worked")
 
+        
+        
 input = getInput()
 
 
