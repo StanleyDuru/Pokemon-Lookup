@@ -23,22 +23,39 @@ response = requests.request("GET", url, headers=headers)
 def getInput():
     choice = input("Select to input stat or Pokemon: ")
     while not(choice.lower() == "pokemon" or choice.lower() == "stat"):
-        print("Invalid Input. Please try again!")
+        print("\n***Invalid Input. Please try again!***\n")
         choice = input("Select to input stat or Pokemon: ")
         
     while choice.lower() == "pokemon" or choice.lower() == "stat":
         if choice.lower() == "pokemon":
             Pokemon = input("\nType in the name of a Pokemon: ")
-            return print("this worked")
+            return Pokemon
         elif choice.lower() == "stat":
             print("\nChoose from the following base stats:\n 1. Attack \n 2. Stamina \n 3. Defense\n")
             stat = input()
-            return print("this worked")
+            return stat
 
+def pokemon(input):
+    
+
+    
+def stat(input):
+    
+def status(response):
+    return response.status_code
+
+
+def get_json(url, headers):
+    response = requests.get(url, headers)
+    return response.json()
         
         
 input = getInput()
 
+# for pokemon:
+#   table :requsted pokemon ->pokemon: stats
+# for stats("Attack >5"):
+#   table:requested "Attack >5" -> pokemons:stats (listed in table)
 
 
 
