@@ -1,12 +1,15 @@
-import requests
+import requests, os
+import json
 import pandas as pd
+import sqlalchemy 
+from sqlalchemy import create_engine
 
 url = "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
 headers = {
     'x-rapidapi-key': "cdcc19f7bemshcaafa6b12f20c45p1ec5eajsn982786737a25",
     'x-rapidapi-host': "pokemon-go1.p.rapidapi.com"
     }
-response = requests.request("GET", url, headers=headers)
+#response = requests.request("GET", url, headers=headers)
 
 
 
@@ -45,24 +48,19 @@ def getInput():
 
     
 
-
-def makeSqlTable(df, database_name, table_name):
-    engine = create_engine('mysql://root:codio@localhost/Pokemon')
-    os.system('mysql -u root -pcodio -e "CREATE DATABASE IF NOT EXISTS '+database_name+';"')
-    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
     
 def status(response):
     return response.status_code
 
 
 def get_json(url, headers):
-    response = requests.get(url, headers)
+    response = requests.request("GET", url, headers=headers)
     return response.json()
 
 def create_lis(rep):
     lis = []
     for i in rep:
-        if i['form']=='Normal':
+        if i['form']=='Shadow':
             lis.append(tuple((i['pokemon_name'],i['base_stamina'],i['base_defense'],i['base_attack'])))
     return lis
     
@@ -71,15 +69,66 @@ def dataframe(lis):
     col_names = ['Name', 'Base_stamina', 'Base_defense', 'Base_attack']
     df = pd.DataFrame(columns = col_names)
     for i in lis:
-        df.loc[len(df.index)] = [i[0],i[1],i[2],i[3]]
+        df.loc[len(df.index)] = [i[0],int(i[1]),int(i[2]),int(i[3])]
     return df
 
+def makeSqlTable(df, database_name, table_name):
+    engine = create_engine('mysql://root:codio@localhost/Pokemon')
+    os.system('mysql -u root -pcodio -e "CREATE DATABASE IF NOT EXISTS '+database_name+';"')
+    df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+    
+database_name = 'Pokemon'
+table_name = 'Pokemon_stats'
 
 #input = getInput()
-rep = response.json()
+rep = get_json(url,headers)
 info = create_lis(rep)
 df = dataframe(info)
 print(df)
+makeSqlTable(df, database_name, table_name)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # for pokemon:
@@ -87,21 +136,6 @@ print(df)
 #   
 # for stats("Attack >5"):
 #   table:requested "Attack >5" -> pokemons:stats (listed in table)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #print(response.status_code)
 #print(response.json())
 
