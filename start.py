@@ -22,7 +22,12 @@ from sqlalchemy import select
 #           create database and store it
 
 #gets the status code of the json()    
-def status(url, headers):
+def status():
+    url = "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
+    headers = {
+        'x-rapidapi-key': "cdcc19f7bemshcaafa6b12f20c45p1ec5eajsn982786737a25",
+        'x-rapidapi-host': "pokemon-go1.p.rapidapi.com"
+    }
     response = requests.request("GET", url, headers=headers)
     code = response.status_code
     return code
@@ -104,11 +109,11 @@ def main():
     database_name = 'Pokemon'
     table_name = 'Pokemon_stats'
     rep = get_json(url,headers)
-    status(url, headers) 
-    print(status)
+    print(status())
     info = create_lis(rep)
     df = dataframe(info)
     data = makeSqlTable(df, database_name, table_name)
+    
  #Prompt for user input   
     Prompt = "\n\t ***Welcome to Pokemon GO Pokemon Finder Project***\n\n\
         You will be prompted to either look for your pokemon\n \
@@ -117,7 +122,6 @@ def main():
     print(Prompt)
     choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\n\t type '0' to exit\n")
     while choice != '0':
-        #choices= ['1','2']
         while not(choice == '1' or choice == '2'):
             print("\n***Invalid Input. Please try again!***\n")
             break
