@@ -6,8 +6,7 @@ import requests, os
 import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine
-import matplotlib
-import matplotlib.pyplot as plt
+
 
 database_name = 'Pokemon'
 table_name = 'Pokemon_stats'
@@ -22,10 +21,28 @@ info = create_lis(rep)
 df = dataframe(info)
 data = makeSqlTable(df, database_name, table_name)
 
-r = fetch_stat(data,table_name,'1',100)
+r = fetch_stat(data,table_name,'2',100)
 
-print(r)
-#def barchart(df):
-#    ax = df.plot.bar(x='Name')
+#print(r['Base_attack'])
+attack =[]
+stamina = []
+defense = []
+names = []
+
+for i in r['Base_stamina']:
+    stamina.append(i)
+for i in r['Base_defense']:
+    defense.append(i)
+for i in r['Base_attack']:
+    attack.append(i)
+for i in r['Name']:
+    names.append(i)
     
-    
+plot_data = pd.DataFrame({
+    "Stamina":stamina,
+    "Defense":defense,
+    "Attack":attack},index=names )
+
+
+plot_data.plot(kind='bar')
+plt.show()
