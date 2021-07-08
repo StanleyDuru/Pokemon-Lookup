@@ -5,11 +5,6 @@ import sqlalchemy as db
 from sqlalchemy import create_engine
 from sqlalchemy import select
 
-url = "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
-headers = {
-    'x-rapidapi-key': "cdcc19f7bemshcaafa6b12f20c45p1ec5eajsn982786737a25",
-    'x-rapidapi-host': "pokemon-go1.p.rapidapi.com"
-    }
 #response = requests.request("GET", url, headers=headers)
 
 
@@ -25,34 +20,19 @@ headers = {
 #               find amounts >= amount
 #           gets json for each pokemon with corresponding stats
 #           create database and store it
-def getInput():
-    choice = input("Select to input:\n\t 1. Pokemon\n\t 2.Stat\n\t type '0' to exit\n")
-    while int(choice) != 0:
-        choice = input("Select to input stat or Pokemon: ")
-    while not(choice.lower() == "pokemon" or choice.lower() == "stat"):
-        print("\n***Invalid Input. Please try again!***\n")
-        choice = input("Select to input stat or Pokemon: ")
-        
-    while choice.lower() == "pokemon" or choice.lower() == "stat":
-        if choice.lower() == "pokemon":
-            Pokemon = input("\nType in the name of a Pokemon: ")
-            return Pokemon
-        elif choice.lower() == "stat":
-            print("\nChoose from the following base stats:\n 1. Attack \n 2. Stamina \n 3. Defense\n")
-            stat = input()
-            return stat
 
 
-def pokemon(input):
+
+#def pokemon(input):
    # print(select(df.Pokemon))
-    db= pymysql.connect("localhost","testuser","admin","TESTDB")
-    cursor =db.cursor()
-    cursor.execute("SELECT name, base_stamina, base_defense, base_attack FROM Pokemon_stats WHERE name=%s", (input,))
-    data = cursor.fetchall()
-    if data:
-        print("Pokemon exists")
-    else:
-        print("Pokemon does not exist")
+ #   db= pymysql.connect("localhost","testuser","admin","TESTDB")
+  #  cursor =db.cursor()
+   # cursor.execute("SELECT name, base_stamina, base_defense, base_attack FROM Pokemon_stats WHERE name=%s", (input,))
+    #data = cursor.fetchall()
+    #if data:
+     #   print("Pokemon exists")
+    #else:
+     #   print("Pokemon does not exist")
         
     
 #def stat(input):
@@ -89,31 +69,80 @@ def makeSqlTable(df, database_name, table_name):
     df.to_sql(table_name, con=engine, if_exists='replace', index=False)
     return engine
 
-def fetch_data(engine,table_name, input):
+def fetch_pokemon(engine,table_name, pokemon):
     connection = engine.connect()
     metadata = db.MetaData()
     c = db.Table(table_name, metadata, autoload=True, autoload_with=engine)
-    query = db.select([c]).where(db.and_(c.columns.Name == input))
+    query = db.select([c]).where(db.and_(c.columns.Name == pokemon))
     ResultProxy = connection.execute(query)
     ResultSet = ResultProxy.fetchall()
     return ResultSet
+
+
+def fetch_stat(engine,table_name, stat, val):
+    connection = engine.connect()
+    metadata = db.MetaData()
+    c = db.Table(table_name, metadata, autoload=True, autoload_with=engine)
+    if stat == '3':
+        query = db.select([c]).where(db.and_(c.columns.Base_attack == val))
+    elif stat == '1':
+        query = db.select([c]).where(db.and_(c.columns.Base_stamina == val))
+    elif stat == '2':
+        query = db.select([c]).where(db.and_(c.columns.Base_defense == val))
+    ResultProxy = connection.execute(query)
+    ResultSet = ResultProxy.fetchall()
+    return ResultSet
+
+
+
+
+def main():
+    url = "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
+    headers = {
+        'x-rapidapi-key': "cdcc19f7bemshcaafa6b12f20c45p1ec5eajsn982786737a25",
+        'x-rapidapi-host': "pokemon-go1.p.rapidapi.com"
+    }
+    database_name = 'Pokemon'
+    table_name = 'Pokemon_stats'
+    rep = get_json(url,headers)
+    info = create_lis(rep)
+    df = dataframe(info)
+    data = makeSqlTable(df, database_name, table_name)
     
+    choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\n\t type '0' to exit\n")
+    while choice != '0':
+        #choices= ['1','2']
+        while not(choice == '1' or choice == '2'):
+            print("\n***Invalid Input. Please try again!***\n")
+            break
+            #choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\n\t type '0' to exit\n")
+            
+
+        while choice == '1'or choice == '2':
+            if choice == '1':
+                    pokemon = input("\nType in the name of a Pokemon: ")
+                    res = fetch_pokemon(data,table_name, pokemon)
+                    print (res)
+                    break
+            if choice == '2':
+                    print("\nChoose from the following base stats:\n 1. Stamina \n 2. Defense \n 3. Attack\n")
+                    stat = input()
+                    print("\nInput a value for the stat selected\n")
+                    val = input()
+                    res = fetch_stat(data,table_name, stat, val)
+                    print(res)
+                    break
+        
+        choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\t type '0' to exit\n")
+        
+    while choice == '0':
+        print("\n Thank You for your time, See you later!\n")
+        break
+
     
-database_name = 'Pokemon'
-table_name = 'Pokemon_stats'
+if __name__ == "__main__":
+    main()
 
-input = getInput()
-rep = get_json(url,headers)
-info = create_lis(rep)
-df = dataframe(info)
-pd.set_option("display.max_rows", None, "display.max_columns", None)
-
-
-
-data = makeSqlTable(df, database_name, table_name)
-res = fetch_data(data,table_name, input)
-
-print(res)
 #s = select(users)
 #conn = data.connect()
 #result = conn.execute(s)
