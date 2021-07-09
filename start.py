@@ -1,5 +1,6 @@
 import requests
 import os
+import matplotlib.pyplot as plt
 import json
 import pandas as pd
 import sqlalchemy as db
@@ -80,7 +81,7 @@ def fetch_pokemon(engine, table_name, pokemon):
         error = "\n\tNo Results Found\n"
         return error
     else:
-        print("\nResults for {}:".format(pokemon))
+        #print("\nResults for {}:".format(pokemon))
         return df
 
 
@@ -105,7 +106,57 @@ def fetch_stat(engine, table_name, stat, val):
     else:
         # print("\nPokemon Found:")
         return df
+    
+def fetch_history(engine,username):
+    try:
+        col_names = ['Name', 'Base_stamina', 'Base_defense', 'Base_attack']
+        connection = engine.connect()
+        metadata = db.MetaData()
+        c = db.Table(username, metadata, autoload=True, autoload_with=engine)
+        query = db.select([c])
+        ResultProxy = connection.execute(query)
+        ResultSet = ResultProxy.fetchall()
+        nf = pd.DataFrame(ResultSet, columns=col_names)
+        return nf
+    except:
+        error = '\n No history found \n'
+        return error
+    
+def make_userhistory(df,engine,username):
+    try:
+        nf = fetch_history(engine,username)
+        result = nf.append(df,ignore_index=True)
+        #print(result)
+        result.to_sql(username, con=engine, if_exists='replace', index=False)
+    except:
+        df.to_sql(username, con=engine, if_exists='replace', index=False)
 
+def show_visuals(df,save_name):
+    
+    attack =[]
+    stamina = []
+    defense = []
+    names = []
+
+    for i in df['Base_stamina']:
+        stamina.append(i)
+    for i in df['Base_defense']:
+        defense.append(i)
+    for i in df['Base_attack']:
+        attack.append(i)
+    for i in df['Name']:
+        names.append(i)
+
+    plot_data = pd.DataFrame({
+        "Stamina":stamina,
+        "Defense":defense,
+        "Attack":attack},index=names )
+    plot_data.plot(kind='bar')
+    plt.xticks(rotation=360)
+    plt.title("Visual to compare stats")
+    plt.xlabel('Pokémon')
+    plt.ylabel('Stat Amount')
+    plt.savefig("{}.jpg".format(save_name))
 
 def save():
     os.system("mysqldump -u root -pcodio Pokemon > pokemon.sql")
@@ -126,7 +177,6 @@ def main():
     database_name = 'Pokemon'
     table_name = 'Pokemon_stats'
     rep = get_json(url, headers)
-    print(status())
     info = create_lis(rep)
     df = dataframe(info)
     data = makeSqlTable(df, database_name, table_name)
@@ -138,19 +188,27 @@ def main():
             \tor find pokemon with stats you prefer!\n"
 
     print(Prompt)
-    choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\n\t type '0' to exit\n")
+    u = input("\nInput Username: ")
+    user = "{}'s history".format(u)
+    print()
+    choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\t 3. View Pokemon history \n\n\t type '0' to exit\n")
     while choice != '0':
-        while not(choice == '1' or choice == '2'):
+        while not(choice == '1' or choice == '2'or choice == '3'):
             print("\n***Invalid Input. Please try again!***\n")
             break
         # choice = input("\nSelect to input:\n\t 1. Pokemon\n\n\t 2. Stat\n\n\t type '0' to exit\n")
             
 
-        while choice == '1'or choice == '2':
+        while choice == '1'or choice == '2' or choice == '3':
             if choice == '1':
                 pokemon = input("\nType in the name of a Pokemon: ")
                 res = fetch_pokemon(data,table_name, pokemon)
                 print (res)
+                try:
+                    make_userhistory(res,data,user)
+                except:
+                    pass
+            
                 break
             if choice == '2':
                 print("\nChoose from the following base stats:\n\t 1. Stamina \n\t 2. Defense \n\t 3. Attack\n")
@@ -162,9 +220,21 @@ def main():
                 val = input()
                 res = fetch_stat(data,table_name, stat, val)
                 print(res)
+                print("\n Would you like to view visual of Pokemon retrived?(y/n)\n")
+                ans = input()
+                if ans.lower() == 'y':
+                    save_file = input("\n Input filename to save visual to:\n")
+                    show_visuals(res,save_file)
                 break
+            if choice == '3':
+                print("\n\t{}'s search history\n".format(u))
+                his = fetch_history(data,user)
+                print(his)
+                break
+                
+                
         
-        choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\n\t type '0' to exit\n")
+        choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\t 3. View Pokemon history \n\n\t type '0' to exit\n")
         
     while choice == '0':
         print("\n Thank You for your time, See you later!\n")
