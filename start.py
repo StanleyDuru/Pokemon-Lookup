@@ -188,8 +188,8 @@ def main():
             \tor find pokemon with stats you prefer!\n"
 
     print(Prompt)
-    u = input("\nInput Username: ")
-    user = "{}'s history".format(u)
+    user = input("\nInput Username: ")
+    #user = "{}'s_history".format(u)
     print()
     choice = input("\nSelect to input:\n\t 1. Pokemon\n\t 2. Stat\n\t 3. View Pokemon history \n\n\t type '0' to exit\n")
     while choice != '0':
@@ -227,7 +227,7 @@ def main():
                     show_visuals(res,save_file)
                 break
             if choice == '3':
-                print("\n\t{}'s search history\n".format(u))
+                print("\n\t{}'s search history\n".format(user))
                 his = fetch_history(data,user)
                 print(his)
                 break
@@ -238,6 +238,7 @@ def main():
         
     while choice == '0':
         print("\n Thank You for your time, See you later!\n")
+        #user.drop(data)
         break
 
     
